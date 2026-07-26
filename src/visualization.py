@@ -38,29 +38,54 @@ def generate_reports(predictions_output, test_df, label_encoder, model_name):
     plt.show()
 
 def plot_radar_chart(model1_preds, model1_name, model2_preds, model2_name, label_encoder):
+    import pandas as pd
+    import numpy as np
+    import matplotlib.pyplot as plt
+    from sklearn.metrics import f1_score
+
     y_true = model1_preds.label_ids
     y_pred1 = np.argmax(model1_preds.predictions, axis=1)
     y_pred2 = np.argmax(model2_preds.predictions, axis=1)
     
     classes = label_encoder.classes_
-    f1_m1 = f1_score(y_true, y_pred1, average=None)
-    f1_m2 = f1_score(y_true, y_pred2, average=None)
     
+    # حساب F1-score لكل فئة للنموذجين
+    f1_m1 = f1_score(y_true, y_pred1, average=None) * 100
+    f1_m2 = f1_score(y_true, y_pred2, average=None) * 100
+    
+    # --- إضافة جديدة: طباعة القيم كجدول لتسهيل التحليل لكتابة الورقة ---
+    print("\n" + "="*50)
+    print("📊 F1-Scores per Sensory Mode (For Radar Chart Analysis)")
+    print("="*50)
+    df_radar = pd.DataFrame({
+        'Sensory Mode': classes,
+        f'{model1_name} (F1 %)': np.round(f1_m1, 2),
+        f'{model2_name} (F1 %)': np.round(f1_m2, 2)
+    })
+    print(df_radar.to_markdown(index=False))
+    print("="*50 + "\n")
+    # ------------------------------------------------------------------
+
+    # تجهيز بيانات الرسم
     angles = np.linspace(0, 2 * np.pi, len(classes), endpoint=False).tolist()
-    f1_m1 = np.concatenate((f1_m1, [f1_m1[0]]))
-    f1_m2 = np.concatenate((f1_m2, [f1_m2[0]]))
+    f1_m1_plot = np.concatenate((f1_m1, [f1_m1[0]]))
+    f1_m2_plot = np.concatenate((f1_m2, [f1_m2[0]]))
     angles += angles[:1]
-    classes_lbl = list(classes) + [classes[0]]
     
     fig, ax = plt.subplots(figsize=(8, 8), subplot_kw=dict(polar=True))
-    ax.fill(angles, f1_m1, color='blue', alpha=0.1)
-    ax.plot(angles, f1_m1, color='blue', linewidth=2, label=model1_name)
-    ax.fill(angles, f1_m2, color='red', alpha=0.1)
-    ax.plot(angles, f1_m2, color='red', linewidth=2, linestyle='dashed', label=model2_name)
+    
+    # رسم النموذج الأول
+    ax.fill(angles, f1_m1_plot, color='blue', alpha=0.1)
+    ax.plot(angles, f1_m1_plot, color='blue', linewidth=2, label=model1_name)
+    
+    # رسم النموذج الثاني
+    ax.fill(angles, f1_m2_plot, color='red', alpha=0.1)
+    ax.plot(angles, f1_m2_plot, color='red', linewidth=2, linestyle='dashed', label=model2_name)
     
     ax.set_xticks(angles[:-1])
     ax.set_xticklabels(classes, fontsize=11, fontweight='bold')
     ax.set_title("Cognitive Sensory Modes: F1-Score Comparison", size=15, pad=20)
+    
     plt.legend(loc='upper right', bbox_to_anchor=(1.3, 1.1))
     plt.tight_layout()
     plt.savefig('radar_chart.pdf', format='pdf', bbox_inches='tight')
