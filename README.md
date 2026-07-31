@@ -78,7 +78,9 @@ Additional models can be integrated with minimal code changes.
 
 ## Experimental Design
 
-The benchmark follows a reproducible evaluation protocol.
+The benchmark follows a reproducible evaluation protocol. 
+
+To explore the dataset and replicate the experiments, you can access the interactive notebook here: [MetaSense Replication Notebook](https://drive.google.com/file/d/1zv3eiaAzrtafQSQtqrS9zDEflvELbxEL/view?usp=sharing).
 
 - Multi-class classification
 - Three random seeds
